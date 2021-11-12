@@ -4,20 +4,28 @@ import ma.code.securityservice.sec.entities.AppRole;
 import ma.code.securityservice.sec.entities.AppUser;
 import ma.code.securityservice.sec.repository.AppRoleRepository;
 import ma.code.securityservice.sec.repository.AppUserRepository;
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
-
+@Service
+@Transactional
 public class AccountServiceImpl implements AccountService {
     private AppUserRepository appUserRepository;
     private AppRoleRepository appRoleRepository;
 
-    public AccountServiceImpl(AppUserRepository appUserRepository, AppRoleRepository appRoleRepository) {
+    private PasswordEncoder passwordEncoder;
+    public AccountServiceImpl(AppUserRepository appUserRepository, AppRoleRepository appRoleRepository, PasswordEncoder passwordEncoder) {
         this.appUserRepository = appUserRepository;
         this.appRoleRepository = appRoleRepository;
+        this.passwordEncoder = passwordEncoder;
     }
 
     @Override
     public AppUser addNewUser(AppUser appUser) {
+        String pw=appUser.getPassword();
+        appUser.setPassword(passwordEncoder.encode(pw));
         return appUserRepository.save(appUser);
     }
 
@@ -29,18 +37,20 @@ public class AccountServiceImpl implements AccountService {
 
     @Override
     public void addRoleToUser(String userName, String roleName) {
-        AppUser appUser=appUserRepository.findByUsername(userName);
+        AppUser appUser=appUserRepository.findByUserName(userName);
         AppRole appRole=appRoleRepository.findByRoleName(roleName);
         appUser.getAppRoles().add(appRole);
     }
 
     @Override
     public AppUser loadUserByUserName(String userName) {
-        return null;
+
+        return appUserRepository.findByUserName(userName);
     }
 
     @Override
     public List<AppUser> listUsers() {
-        return null;
+
+        return appUserRepository.findAll();
     }
 }
